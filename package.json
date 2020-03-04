@@ -1,0 +1,24 @@
+{
+  "name": "serverless-cli",
+  "version": "1.0.0",
+  "description": "基于Serverless模式的前端工具集构建",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/D-lyw/Graduation_Project.git"
+  },
+  "keywords": [
+    "serverless",
+    "node",
+    "cli"
+  ],
+  "author": "D-lyw",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/D-lyw/Graduation_Project/issues"
+  },
+  "homepage": "https://github.com/D-lyw/Graduation_Project#readme"
+}
