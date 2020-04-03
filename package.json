@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/D-lyw/Graduation_Project/issues"
   },
-  "homepage": "https://github.com/D-lyw/Graduation_Project#readme"
+  "homepage": "https://github.com/D-lyw/Graduation_Project#readme",
+  "dependencies": {
+    "aws-sdk": "^2.652.0"
+  }
 }
