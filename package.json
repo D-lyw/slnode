@@ -23,7 +23,10 @@
   "homepage": "https://github.com/D-lyw/Graduation_Project#readme",
   "dependencies": {
     "aws-sdk": "^2.652.0",
+    "fs-extra": "^9.0.0",
+    "glob": "^7.1.6",
     "https-proxy-agent": "^5.0.0",
-    "minimist": "^1.2.5"
+    "minimist": "^1.2.5",
+    "oh-no-i-insist": "^1.1.1"
   }
 }
