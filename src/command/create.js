@@ -17,6 +17,13 @@ const markAlias = require('../util/mark-alias')
 const apiGWUrl = require('../util/api-url')
 const rebuildWebApi = require('../aws/rebuild-web-api')
 const lambdaExecutorPolicy = require('../aws/lambda-executor-policy')
+const addPolicy = require('../util/add-policy')
+const initEnvVarsFromOptions = require('../util/init-env-vars-from-options')
+const getOwnerInfo = require('../aws/get-own-info')
+const collectFiles = require('../aws/collect-files')
+const validatePackage = require('../util/validate-package')
+const cleanUpPackage = require('../util/cleanUpPackage')
+
 
 module.exports.create = function(options, optionalLogger) {
     let roleMetadata,
@@ -290,7 +297,7 @@ module.exports.create = function(options, optionalLogger) {
         return config
     }
 
-    // 
+    // 加载用户角色
     const loadRole = function (functionName) {
         logger.logStage(`initialising IAM role`)
         if (options.role) {
@@ -306,10 +313,61 @@ module.exports.create = function(options, optionalLogger) {
         } else {
             return iam.createRole({
                 RoleName: functionName + '-executor',
-                AssumeRolePolicyDocument: 
-            })
+                AssumeRolePolicyDocument: lambdaExecutorPolicy()
+            }).promise()
         }
     }
+
+    // 添加额外policy文件
+    const addExtraPolicies = function () {
+        return Promise.all(policyFiles().map(fileName => {
+            const policyName = path.basename(fileName).replace(/[^A-z0-9]/g, '-')
+            return addPolicy(iam, policyName, roleMetadata.Role.RoleName, fileName)
+        }))
+    }
+
+    // 
+    const cleanup = function (result) {
+        if (!options.keep) {
+            fsUtils.rmDir(workingDir) 
+            fs.unlinkSync(packageArchive)
+        } else {
+            result.archive = packageArchive
+        }
+        return result
+    }
+
+    if (validationError()) {
+        return Promise.reject(validationError())
+    }
+
+    return initEnvVarsFromOptions(options)
+        .then(opts => customEnvVars = opts)
+        .then(getPackageInfo)
+        .then(packageInfo => {
+            functionName = packageInfo.name
+            functionDesc = packageInfo.description
+        })
+        .then(() => getOwnerInfo(options.region, logger))
+        .then(ownerInfo => {
+            ownerAccount = ownerInfo.account 
+            awsPartition = ownerInfo.partition 
+        })
+        .then(() => fsPromise.mkdtemp(os.tmpdir() + path.sep))
+        .then(dir => workingDir = dir)
+        .then(() => collectFiles(source, workingDir, options, logger))
+        .then(dir => {
+            logger.logStage('validating package')
+            return validatePackage(dir, options.handler, options['api-module'])
+        })
+        .then(dir => {
+            packageFileDir = dir
+            return cleanUpPackage(dir, options, logger)
+        })
+        .then(dir => {
+            logger.logStage('zipping package')
+            return zipdir
+        })
 }
 
 module.exports.doc = function() {
