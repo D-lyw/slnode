@@ -23,11 +23,15 @@ const getOwnerInfo = require('../aws/get-own-info')
 const collectFiles = require('../aws/collect-files')
 const validatePackage = require('../util/validate-package')
 const cleanUpPackage = require('../util/cleanUpPackage')
-
+const zipdir = require('../util/zipdir')
+const loggingPolicy = require('../aws/logging-policy')
+const snsPublishPolicy = require('../aws/sns-publish-policy')
+const lambadCode = require('../util/lambdaCode')
+const deployProxyApi = require('../aws/deploy-proxy-api')
 
 module.exports.create = function(options, optionalLogger) {
     let roleMetadata,
-        s3key,
+        s3Key,
         packageArchive,
         functionDesc,
         customEnvVars,
@@ -56,8 +60,9 @@ module.exports.create = function(options, optionalLogger) {
     getSnsDLQTopic = function () {
 			const topicNameOrArn = options['dlq-sns'];
 			if (!topicNameOrArn) {
-				return false;
-			}
+				return false
+            }
+            return false
 			if (isSNSArn(topicNameOrArn)) {
 				return topicNameOrArn;
 			}
@@ -291,8 +296,8 @@ module.exports.create = function(options, optionalLogger) {
         if (lambdaMetadata.api) {
             config.api = lambdaMetadata.api 
         }
-        if (s3key) {
-            config.s3key = s3key
+        if (s3Key) {
+            config.s3key = s3Key
         }
         return config
     }
@@ -366,12 +371,238 @@ module.exports.create = function(options, optionalLogger) {
         })
         .then(dir => {
             logger.logStage('zipping package')
-            return zipdir
+            return zipdir(dir)
         })
+        .then(zipFile => {
+            packageArchive = zipFile
+        })
+        .then(() => loadRole(functionName))
+        .then((result) => {
+            roleMetadata = result
+        })
+        .then(() => {
+            if (!options.role) {
+                return iam.putRolePolicy({
+                    RoleName: roleMetadata.Role.RoleName,
+                    PolicyName: 'log-writer',
+                    PolicyDocument: loggingPolicy(awsPartition)
+                }).promise()
+                .then(() => {
+                    if (getSnsDLQTopic()) {
+                        return iam.putRolePolicy({
+                            RoleName: roleMetadata.Role.RoleName,
+                            PolicyName: 'dlq-publisher',
+                            PolicyDocument: snsPublishPolicy(getSnsDLQTopic())
+                        }).promise()
+                    }
+                })
+            }
+        })
+        .then(() => {
+            if (options.policies) {
+                return addExtraPolicies()
+            }
+        })
+        .then(() => lambadCode(s3, packageArchive, options['use-s3-bucket'], options['s3-see'], options['s3-key']))
+        .then(functionCode => {
+            s3Key = functionCode.S3Key
+            return createLambda(functionName, functionDesc, functionCode, roleMetadata.Role.Arn)
+        })
+        .then(markAlias)
+        .then(lambdaMetadata => {
+            if (options['api-module']) {
+                return createWebApi(lambdaMetadata, packageFileDir)
+            } else if (options['deploy-proxy-api']) {
+                return deployProxyApi(lambdaMetadata, options, ownerAccount, awsPartition, apiGatewayPromise, logger)
+            } else {
+                return lambdaMetadata
+            }
+        })
+        .then(saveConfig)
+        .then(formatResult)
+        .then(cleanup)
 }
 
-module.exports.doc = function() {
-
+module.exports.doc = {
+    description: '创建一个初始的Lambda函数和相关角色.',
+	priority: 1,
+	args: [
+		{
+			argument: 'region',
+			description: '指定在哪个AWS区域创建 Lambda 函数. 更多信息，请查看\n https://docs.aws.amazon.com/general/latest/gr/rande.html#lambda_region',
+			example: 'us-east-1'
+		},
+		{
+			argument: 'handler',
+			optional: true,
+			description: '用于 Lambda 执行的函数, 如 module.function',
+		},
+		{
+			argument: 'api-module',
+			optional: true,
+			description: 'The main module to use when creating Web APIs. \n' +
+				'If you provide this parameter, do not set the handler option.\n' +
+				'This should be a module created using the Claudia API Builder.',
+			example: 'if the api is defined in web.js, this would be web'
+		},
+		{
+			argument: 'deploy-proxy-api',
+			optional: true,
+			description: 'If specified, a proxy API will be created for the Lambda \n' +
+				' function on API Gateway, and forward all requests to function. \n' +
+				' This is an alternative way to create web APIs to --api-module.'
+		},
+		{
+			argument: 'name',
+			optional: true,
+			description: '指定 lambda 函数名称',
+			'default': 'the project name from package.json'
+		},
+		{
+			argument: 'version',
+			optional: true,
+			description: '指定该版本函数的别名， 如 development/test',
+			example: 'development'
+		},
+		{
+			argument: 'source',
+			optional: true,
+			description: '指定项目路径',
+			'default': 'current directory'
+		},
+		{
+			argument: 'config',
+			optional: true,
+			description: '指定配置文件路径',
+			'default': 'sln.json'
+		},
+		{
+			argument: 'policies',
+			optional: true,
+			description: '为 IAM policy 指定额外的目录或文件\n',
+			example: 'policies/*.json'
+		},
+		{
+			argument: 'allow-recursion',
+			optional: true,
+			description: '允许函数递归调用'
+		},
+		{
+			argument: 'role',
+			optional: true,
+			description: 'The name or ARN of an existing role to assign to the function. \n' +
+				'If not supplied, Claudia will create a new role. Supply an ARN to create a function without any IAM access.',
+			example: 'arn:aws:iam::123456789012:role/FileConverter'
+		},
+		{
+			argument: 'runtime',
+			optional: true,
+			description: '指定Nodejs运行环境版本， 更多信息，查看官网\n http://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html',
+			default: 'nodejs12.x'
+		},
+		{
+			argument: 'description',
+			optional: true,
+			description: '设置该函数的描述介绍信息',
+			default: 'the project description from package.json'
+		},
+		{
+			argument: 'memory',
+			optional: true,
+			description: '指定你的Lambda函数运行拥有的内存总量（M）.\n这个值必须是64Mb的整数倍.',
+			default: 128
+		},
+		{
+			argument: 'timeout',
+			optional: true,
+			description: '函数执行时间（s），超过时间将停止执行',
+			default: 3
+		},
+		{
+			argument: 'no-optional-dependencies',
+			optional: true,
+			description: 'Do not upload optional dependencies to Lambda.'
+		},
+		{
+			argument: 'use-local-dependencies',
+			optional: true,
+			description: 'Do not install dependencies, use local node_modules directory instead'
+		},
+		{
+			argument: 'npm-options',
+			optional: true,
+			description: 'Any additional options to pass on to NPM when installing packages. Check https://docs.npmjs.com/cli/install for more information',
+			example: '--ignore-scripts',
+			since: '5.0.0'
+		},
+		{
+			argument: 'cache-api-config',
+			optional: true,
+			example: 'claudiaConfigCache',
+			description: 'Name of the stage variable for storing the current API configuration signature.\n' +
+				'If set, it will also be used to check if the previously deployed configuration can be re-used and speed up deployment'
+		},
+		{
+			argument: 'post-package-script',
+			optional: true,
+			example: 'customNpmScript',
+			description: 'the name of a NPM script to execute custom processing after claudia finished packaging your files.\n' +
+				'Note that development dependencies are not available at this point, but you can use npm uninstall to remove utility tools as part of this step.',
+			since: '5.0.0'
+		},
+		{
+			argument: 'keep',
+			optional: true,
+			description: 'keep the produced package archive on disk for troubleshooting purposes.\n' +
+				'If not set, the temporary files will be removed after the Lambda function is successfully created'
+		},
+		{
+			argument: 'use-s3-bucket',
+			optional: true,
+			example: 'claudia-uploads',
+			description: 'The name of a S3 bucket that Claudia will use to upload the function code before installing in Lambda.\n' +
+			'You can use this to upload large functions over slower connections more reliably, and to leave a binary artifact\n' +
+			'after uploads for auditing purposes. If not set, the archive will be uploaded directly to Lambda.\n'
+		},
+		{
+			argument: 's3-key',
+			optional: true,
+			example: 'path/to/file.zip',
+			description: 'The key to which the function code will be uploaded in the s3 bucket referenced in `--use-s3-bucket`'
+		},
+		{
+			argument: 's3-sse',
+			optional: true,
+			example: 'AES256',
+			description: 'The type of Server Side Encryption applied to the S3 bucket referenced in `--use-s3-bucket`'
+		},
+		{
+			argument: 'aws-delay',
+			optional: true,
+			example: '3000',
+			description: '设置等待重新尝试操作，间隔的毫秒数',
+			default: '5000'
+		},
+		{
+			argument: 'aws-retries',
+			optional: true,
+			example: '15',
+			description: '设置连接AWS操作失败，重试的次数',
+			default: '15'
+		},
+		{
+			argument: 'set-env',
+			optional: true,
+			example: 'S3BUCKET=testbucket,SNSQUEUE=testqueue',
+			description: '以 Key=Vlaue 的形式设置环境变量'
+		},
+		{
+			argument: 'set-env-from-json',
+			optional: true,
+			example: 'production-env.json',
+			description: '将指定JSON文件中的参数设置到环境变量中'
+		}
+	]
 }
 
 /**
@@ -380,4 +611,10 @@ module.exports.doc = function() {
  * apiGatewayPromise函数
  * 
  * rebuildWebApi 函数实现
+ */
+
+/**
+ * 备注：
+ * 
+ * 1. 删除了处理参数 security-group-ids 和 allow-recursion 的相关代码
  */
