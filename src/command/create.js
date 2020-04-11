@@ -12,6 +12,7 @@ const NullLogger = require('../util/null-logger')
 const entityWrap = require('../util/entity-wrap')
 const fsUtils = require('../util/fs-utils')
 const judgeRole = require('../util/judge-role')
+const retriableWrap = require('../util/retriable-wrap')
 const readJson = require('../util/read-json')
 const markAlias = require('../util/mark-alias')
 const apiGWUrl = require('../util/api-url')
@@ -69,6 +70,12 @@ module.exports.create = function(options, optionalLogger) {
 			return `arn:${awsPartition}:sns:${options.region}:${ownerAccount}:${topicNameOrArn}`;
 		}
     // --------------------------
+    
+    // 创建AWS网关api
+    const apiGatewayPromise = retriableWrap(
+        entityWrap(new aws.APIGateway({region: options.region}), {log: logger.logApiCall, logName: 'apigateway'}),
+        () => logger.logStage(`AWS限制速率，稍后重试`)
+    )
 
     // 处理policy文件所在路径
     const policyFiles = function () {
@@ -408,7 +415,7 @@ module.exports.create = function(options, optionalLogger) {
             s3Key = functionCode.S3Key
             return createLambda(functionName, functionDesc, functionCode, roleMetadata.Role.Arn)
         })
-        .then(markAlias)
+        .then(markAliases)
         .then(lambdaMetadata => {
             if (options['api-module']) {
                 return createWebApi(lambdaMetadata, packageFileDir)
@@ -610,7 +617,7 @@ module.exports.doc = {
  * 
  * apiGatewayPromise函数
  * 
- * rebuildWebApi 函数实现
+ * rebuildWebApi 函数实现 Done
  */
 
 /**

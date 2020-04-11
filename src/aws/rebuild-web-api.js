@@ -12,6 +12,8 @@ const validCredentials = require('../util/valid-credentials')
 const flattenRequestParameters = require('../util/flatten-request-param')
 const pathSplitter = require('../util/path-splitter')
 const sequentialPromiseMap = require('sequential-promise-map')
+const allowApiInvocation = require('../aws/allow-api-invocation')
+const registerAuthorizers = require('../aws/register-authorizers')
 
 
 module.exports = function rebuildWebApi(functionName, functionVersion, restApiId, apiConfig, ownerAccount, awsPartition, awsRegion, optionalLogger, configCacheStageVar) {
@@ -261,4 +263,79 @@ module.exports = function rebuildWebApi(functionName, functionVersion, restApiId
         return clearApi(apiGateway, restApiId, functionName)
     }
 
+    const cacheRootId = function () {
+        return apiGateway.getResourcesPromise({restApiId: restApiId, limit: 499})
+            .then(resources => {
+                resources.items.forEach(resource => {
+                    const pathWithoutStartingSlash = resource.path.replace(/^\//, '')
+                    knownIds[pathWithoutStartingSlash] = resource.id
+                })
+            })
+    }
+
+    const rebuildApi = function () {
+        return allowApiInvocation(functionName, functionVersion, restApiId, ownerAccount, awsPartition, awsRegion)
+            .then(() => cacheRootId())
+            .then(() => sequentialPromiseMap(Object.keys(apiConfig.routes)))
+            .then(() => {
+                if (apiConfig.customResponses) {
+                    return sequentialPromiseMap(Object.keys(apiConfig.customResponses), responseType => configureGatewayResponse(responseType, apiConfig.customResponses[responseType]))
+                }
+            })
+            .then(() => {
+                if (apiConfig.binaryMediaTypes) {
+                    return patchBinaryTypes(restApiId, apiGateway, apiConfig.binaryMediaTypes)
+                }
+            })
+    }
+
+    const deployApi = function () {
+        const stageVars = {
+            lambdaVersion: functionVersion
+        }
+        if (configCacheStageVar) {
+            stageVars[configCacheStageVar] = configHash
+        }
+        return apiGateway.createDeploymentPromise({
+            restApiId: restApiId,
+            stageName: functionVersion,
+            variables: stageVars
+        })
+    }
+
+    const configureAuthorizers = function () {
+        if (apiConfig.authorizers && apiConfig.authorizers !== {}) {
+            return registerAuthorizers(apiConfig.authorizers, restApiId, ownerAccount, awsPartition, awsRegion, functionVersion, logger)
+                .then(result => {
+                    authorizerIds = result
+                })
+        } else {
+            authorizerIds = {}
+        }
+    }
+    const uploadApiConfig = function() {
+        return removeExistingResponse()
+            .then(configureAuthorizers)
+            .then(rebuildApi)
+            .then(deployApi)
+            .then(() => ({ cacheReused: false}))
+    }
+    const getExistingConfigHash = function () {
+        if (!configCacheStageVar) {
+            return Promise.resolve(false)
+        }
+        return apiGateway.getStagePromise({restApiId: restApiId, stageName: functionVersion})
+            .then(stage => stage.variables && stage.variables[configCacheStageVar])
+            .catch(() => false)
+    }
+
+    return getExistingConfigHash()
+        .then(existingHash => {
+            if (existingHash && existingHash === configHash) {
+                logger.logStage('重用API缓存配置')
+                return {cacheReused: true}
+            } else {
+                return uploadApiConfig()
+            }
+        })
 }
