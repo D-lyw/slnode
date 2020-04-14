@@ -43,20 +43,20 @@ module.exports = function destroy (options) {
 }
 
 module.exports.doc = {
-	description: 'Undeploy the lambda function and destroy the API and security roles',
+	description: '取消部署lambda函数并销毁API和安全角色',
 	priority: 9,
 	args: [
 		{
 			argument: 'source',
 			optional: true,
-			description: 'Directory with project files',
-			default: 'current directory'
+			description: '指定项目文件目录',
+			default: '当前目录'
 		},
 		{
 			argument: 'config',
 			optional: true,
-			description: 'Config file containing the resource names',
-			default: 'claudia.json'
+			description: '指定配置文件名称',
+			default: 'sln.json'
 		}
 	]
 }

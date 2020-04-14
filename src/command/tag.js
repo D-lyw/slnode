@@ -66,25 +66,25 @@ module.exports = function tag(options) {
 
 
 module.exports.doc = {
-	description: 'Add tags (key-value pairs) to the lambda function and any associated web API',
+	description: '以键值对的形式将标签添加到Lambda函数和与之关联的Web api上',
 	priority: 22,
 	args: [
 		{
 			argument: 'tags',
 			example: 'Team=onboarding,Project=amarillo',
-			description: 'The list of tags (key-value pairs) to assign to the lambda function and any associated web API'
+			description: '指定添加到Lambda函数上的标签列表'
 		},
 		{
 			argument: 'source',
 			optional: true,
-			description: 'Directory with project files',
+			description: '项目文件路径',
 			default: 'current directory'
 		},
 		{
 			argument: 'config',
 			optional: true,
-			description: 'Config file containing the resource names',
-			default: 'claudia.json'
+			description: '指定包含资源名称的配置文件',
+			default: 'sln.json'
 		}
 	]
 }

@@ -447,17 +447,13 @@ module.exports.doc = {
 		{
 			argument: 'api-module',
 			optional: true,
-			description: 'The main module to use when creating Web APIs. \n' +
-				'If you provide this parameter, do not set the handler option.\n' +
-				'This should be a module created using the Claudia API Builder.',
+			description: '设置创建Web api的主模块',
 			example: 'if the api is defined in web.js, this would be web'
 		},
 		{
 			argument: 'deploy-proxy-api',
 			optional: true,
-			description: 'If specified, a proxy API will be created for the Lambda \n' +
-				' function on API Gateway, and forward all requests to function. \n' +
-				' This is an alternative way to create web APIs to --api-module.'
+			description: '设置Lambda函数的代理api'
 		},
 		{
 			argument: 'name',
@@ -497,8 +493,7 @@ module.exports.doc = {
 		{
 			argument: 'role',
 			optional: true,
-			description: 'The name or ARN of an existing role to assign to the function. \n' +
-				'If not supplied, Claudia will create a new role. Supply an ARN to create a function without any IAM access.',
+			description: '分配给该功能的现有角色的名称或ARN',
 			example: 'arn:aws:iam::123456789012:role/FileConverter'
 		},
 		{
@@ -528,60 +523,48 @@ module.exports.doc = {
 		{
 			argument: 'no-optional-dependencies',
 			optional: true,
-			description: 'Do not upload optional dependencies to Lambda.'
+			description: '不上传可选依赖到Lambda'
 		},
 		{
 			argument: 'use-local-dependencies',
 			optional: true,
-			description: 'Do not install dependencies, use local node_modules directory instead'
+			description: '不安装依赖，使用本地node_modules文件夹中依赖代替'
 		},
 		{
 			argument: 'npm-options',
 			optional: true,
-			description: 'Any additional options to pass on to NPM when installing packages. Check https://docs.npmjs.com/cli/install for more information',
+			description: '安装软件包时传递给npm的任何可选依赖',
 			example: '--ignore-scripts',
 			since: '5.0.0'
 		},
 		{
 			argument: 'cache-api-config',
 			optional: true,
-			example: 'claudiaConfigCache',
-			description: 'Name of the stage variable for storing the current API configuration signature.\n' +
-				'If set, it will also be used to check if the previously deployed configuration can be re-used and speed up deployment'
-		},
-		{
-			argument: 'post-package-script',
-			optional: true,
-			example: 'customNpmScript',
-			description: 'the name of a NPM script to execute custom processing after claudia finished packaging your files.\n' +
-				'Note that development dependencies are not available at this point, but you can use npm uninstall to remove utility tools as part of this step.',
-			since: '5.0.0'
+			example: 'slnConfigCache',
+			description: '用于存储当前API配置签名的阶段变量的名称'
 		},
 		{
 			argument: 'keep',
 			optional: true,
-			description: 'keep the produced package archive on disk for troubleshooting purposes.\n' +
-				'If not set, the temporary files will be removed after the Lambda function is successfully created'
+			description: '将产生的软件包保留在磁盘上，而不在成功上传后，进行删除'
 		},
 		{
 			argument: 'use-s3-bucket',
 			optional: true,
-			example: 'claudia-uploads',
-			description: 'The name of a S3 bucket that Claudia will use to upload the function code before installing in Lambda.\n' +
-			'You can use this to upload large functions over slower connections more reliably, and to leave a binary artifact\n' +
-			'after uploads for auditing purposes. If not set, the archive will be uploaded directly to Lambda.\n'
+			example: 'sln-uploads',
+			description: '使用S3桶服务'
 		},
 		{
 			argument: 's3-key',
 			optional: true,
 			example: 'path/to/file.zip',
-			description: 'The key to which the function code will be uploaded in the s3 bucket referenced in `--use-s3-bucket`'
+			description: '指定s3桶加密的秘钥'
 		},
 		{
 			argument: 's3-sse',
 			optional: true,
 			example: 'AES256',
-			description: 'The type of Server Side Encryption applied to the S3 bucket referenced in `--use-s3-bucket`'
+			description: '指定应用于 --use-s3-bucket 中引用的S3存储桶的服务器端加密类型'
 		},
 		{
 			argument: 'aws-delay',

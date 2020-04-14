@@ -29,31 +29,31 @@ module.exports = function testLambda (options) {
 }
 
 module.exports.doc = {
-	description: 'Execute the lambda function and print out the response',
+	description: '执行Lambda函数并打印输出结果',
 	priority: 8,
 	args: [
 		{
 			argument: 'event',
 			optional: true,
-			description: 'Path to a file containing the JSON test event'
+			description: '指定包含json测试事件文件的路径'
 		},
 		{
 			argument: 'version',
 			optional: true,
-			description: 'A version alias to test',
+			description: '指定测试的版本别名',
 			default: 'latest version'
 		},
 		{
 			argument: 'source',
 			optional: true,
-			description: 'Directory with project files',
+			description: '项目文件路径',
 			default: 'current directory'
 		},
 		{
 			argument: 'config',
 			optional: true,
-			description: 'Config file containing the resource names',
-			default: 'claudia.json'
+			description: '指定配置文件名称',
+			default: 'sln.json'
 		}
 	]
 }

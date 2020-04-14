@@ -64,51 +64,35 @@ module.exports = function pack (options, optionalLogger) {
 }
 
 module.exports.doc = {
-	description: 'Package a zip file for uploading to Lambda with all the required NPM dependencies, without deploying it anywhere.\nWorks with any JavaScript Lambda project, not just Claudia-related deployments.',
+	description: '将Lambda函数及其NPM依赖打包成一个zip文件，而不进行部署.',
 	priority: 4,
 	args: [
 		{
 			argument: 'output',
 			optional: true,
-			description: 'Output file path',
-			default: 'File in the current directory named after the NPM package name and version'
+			description: '输出文件路径',
+			default: '当前目录'
 		},
 		{
 			argument: 'force',
 			optional: true,
-			description: 'If set, existing output files will be overwritten',
-			default: 'not set, so trying to write over an existing output file will result in an error'
+			description: '强制覆盖已存在的同名文件',
 		},
 		{
 			argument: 'source',
 			optional: true,
-			description: 'Directory with project files',
+			description: '项目文件路径',
 			'default': 'current directory'
 		},
 		{
 			argument: 'no-optional-dependencies',
 			optional: true,
-			description: 'Do not pack optional dependencies.'
+			description: '不打包可选的依赖.'
 		},
 		{
 			argument: 'use-local-dependencies',
 			optional: true,
-			description: 'Do not install dependencies, use the local node_modules directory instead'
+			description: '不安装依赖，使用本地的node_modules中的依赖'
 		},
-		{
-			argument: 'npm-options',
-			optional: true,
-			description: 'Any additional options to pass on to NPM when installing packages. Check https://docs.npmjs.com/cli/install for more information',
-			example: '--ignore-scripts',
-			since: '5.0.0'
-		},
-		{
-			argument: 'post-package-script',
-			optional: true,
-			example: 'customNpmScript',
-			description: 'the name of a NPM script to execute custom processing after claudia finished packaging your files.\n' +
-				'Note that development dependencies are not available at this point, but you can use npm uninstall to remove utility tools as part of this step.',
-			since: '5.0.0'
-		}
 	]
 }

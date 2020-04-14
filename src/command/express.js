@@ -60,31 +60,30 @@ module.exports = function generateServerlessExpressProxy(options, optionalLogger
 }
 
 module.exports.doc = {
-	description: 'Create a lambda proxy API wrapper for an express app using aws-serverless-express',
+	description: '创建Express应用的代理Lambda api',
 	priority: 20,
 	args: [
 		{
 			argument: 'express-module',
-			description: 'The main module that exports your express application',
-			example: 'if the application is defined and exported from express-server.js, this would be express-server'
+			description: '指定express应用导出的主模块',
 		},
 		{
 			argument: 'source',
 			optional: true,
-			description: 'Directory with project files',
+			description: '指定项目文件路径',
 			'default': 'current directory'
 		},
 		{
 			argument: 'proxy-module-name',
 			optional: true,
-			description: 'the name of the new proxy module/file that will be created. To create a file called web-lambda.js, this would be web-lambda',
+			description: '指定将要创建的代理模块名称',
 			default: 'lambda'
 		},
-		{
-			argument: 'aws-serverless-express-module',
-			optional: true,
-			description: 'the NPM module name/path of the serverless-express module you want to install',
-			default: 'aws-serverless-express'
-		}
+		// {
+		// 	argument: 'aws-serverless-express-module',
+		// 	optional: true,
+		// 	description: 'the NPM module name/path of the serverless-express module you want to install',
+		// 	default: 'aws-serverless-express'
+		// }
 	]
 }

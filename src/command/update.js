@@ -310,166 +310,130 @@ module.exports.doc = {
 		{
 			argument: 'version',
 			optional: true,
-			description: 'A version alias to automatically assign to the new deployment',
+			description: '自动分配给新部署的版本别名',
 			example: 'development'
 		},
 		{
 			argument: 'source',
 			optional: true,
-			description: 'Directory with project files',
+			description: '项目文件目录',
 			default: 'current directory'
 		},
 		{
 			argument: 'config',
 			optional: true,
-			description: 'Config file containing the resource names',
-			default: 'claudia.json'
+			description: '指定包含资源名称的配置文件',
+			default: 'sln.json'
 		},
 		{
 			argument: 'timeout',
 			optional: true,
-			description: 'The function execution time, in seconds, at which AWS Lambda should terminate the function'
+			description: 'Lambda函数执行的最大时间（s）'
 		},
 		{
 			argument: 'runtime',
 			optional: true,
-			description: 'Node.js runtime to use. For supported values, see\n http://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html'
+			description: '指定Node.js的运行版本'
 		},
 		{
 			argument: 'memory',
 			optional: true,
-			description: 'The amount of memory, in MB, your Lambda function is given.\nThe value must be a multiple of 64 MB.'
+			description: '指定Lambda函数运行分配的最大内存空间.'
 		},
 		{
 			argument: 'no-optional-dependencies',
 			optional: true,
-			description: 'Do not upload optional dependencies to Lambda.'
+			description: '不将可选依赖上传到Lambda'
 		},
 		{
 			argument: 'use-local-dependencies',
 			optional: true,
-			description: 'Do not install dependencies, use local node_modules directory instead'
+			description: '不安装依赖，使用本地node_modules文件夹中依赖代替'
 		},
 		{
 			argument: 'npm-options',
 			optional: true,
-			description: 'Any additional options to pass on to NPM when installing packages. Check https://docs.npmjs.com/cli/install for more information',
+			description: '安装软件包时，传给npm的任何其他参数. ',
 			example: '--ignore-scripts',
 			since: '5.0.0'
 		},
 		{
 			argument: 'cache-api-config',
 			optional: true,
-			example: 'claudiaConfigCache',
-			description: 'Name of the stage variable for storing the current API configuration signature.\n' +
-				'If set, it will also be used to check if the previously deployed configuration can be re-used and speed up deployment'
-		},
-		{
-			argument: 'post-package-script',
-			optional: true,
-			example: 'customNpmScript',
-			description: 'the name of a NPM script to execute custom processing after claudia finished packaging your files.\n' +
-				'Note that development dependencies are not available at this point, but you can use npm uninstall to remove utility tools as part of this step.',
-			since: '5.0.0'
+			example: 'slnConfigCache',
+			description: '用于存储当前API配置签名的阶段变量的名称'
 		},
 		{
 			argument: 'keep',
 			optional: true,
-			description: 'keep the produced package archive on disk for troubleshooting purposes.\n' +
-				'If not set, the temporary files will be removed after the Lambda function is successfully created'
+			description: '将产生的软件包保留在磁盘上，而不在成功上传后，进行删除'
 		},
 		{
 			argument: 'use-s3-bucket',
 			optional: true,
-			example: 'claudia-uploads',
-			description: 'The name of a S3 bucket that Claudia will use to upload the function code before installing in Lambda.\n' +
-			'You can use this to upload large functions over slower connections more reliably, and to leave a binary artifact\n' +
-			'after uploads for auditing purposes. If not set, the archive will be uploaded directly to Lambda.\n'
+			example: 'sln-uploads',
+			description: '使用S3桶服务'
 		},
 		{
 			argument: 's3-key',
 			optional: true,
 			example: 'path/to/file.zip',
-			description: 'The key to which the function code will be uploaded in the s3 bucket referenced in `--use-s3-bucket`'
+			description: '指定s3桶加密的秘钥'
 		},
 		{
 			argument: 's3-sse',
 			optional: true,
 			example: 'AES256',
-			description: 'The type of Server Side Encryption applied to the S3 bucket referenced in `--use-s3-bucket`'
+			description: '指定应用于 --use-s3-bucket 中引用的S3存储桶的服务器端加密类型'
 		},
 		{
 			argument: 'update-env',
 			optional: true,
 			example: 'S3BUCKET=testbucket,SNSQUEUE=testqueue',
-			description: 'comma-separated list of VAR=VALUE environment variables to set, merging with old variables'
+			description: '以键值对的形式，更新环境变量'
 		},
 		{
 			argument: 'set-env',
 			optional: true,
 			example: 'S3BUCKET=testbucket,SNSQUEUE=testqueue',
-			description: 'comma-separated list of VAR=VALUE environment variables to set. replaces the whole set, removing old variables.'
+			description: '以键值对的形式，设置环境变量'
 		},
 		{
 			argument: 'update-env-from-json',
 			optional: true,
 			example: 'production-env.json',
-			description: 'file path to a JSON file containing environment variables to set, merging with old variables'
+			description: '根据指定JSON文件内容，更新环境变量'
 		},
 
 		{
 			argument: 'set-env-from-json',
 			optional: true,
 			example: 'production-env.json',
-			description: 'file path to a JSON file containing environment variables to set. replaces the whole set, removing old variables.'
+			description: '根据指定JSON文件内容，重新设置环境变量'
 		},
 		{
 			argument: 'env-kms-key-arn',
 			optional: true,
-			description: 'KMS Key ARN to encrypt/decrypt environment variables'
-		},
-		{
-			argument: 'layers',
-			optional: true,
-			description: 'A comma-delimited list of Lambda layers to attach to this function. Setting this during an update replaces all previous layers.',
-			example: 'arn:aws:lambda:us-east-1:12345678:layer:ffmpeg:4'
-		},
-		{
-			argument: 'add-layers',
-			optional: true,
-			description: 'A comma-delimited list of additional Lambda layers to attach to this function. Setting this during an update leaves old layers in place, and just adds new layers.',
-			example: 'arn:aws:lambda:us-east-1:12345678:layer:ffmpeg:4'
-		},
-		{
-			argument: 'remove-layers',
-			optional: true,
-			description: 'A comma-delimited list of Lambda layers to remove from this function. It will not remove any layers apart from the ones specified in the argument.',
-			example: 'arn:aws:lambda:us-east-1:12345678:layer:ffmpeg:4'
-		},
-		{
-			argument: 'dlq-sns',
-			optional: true,
-			description: 'Dead letter queue SNS topic name or ARN',
-			example: 'arn:aws:sns:us-east-1:123456789012:my_corporate_topic'
+			description: 'KMS密钥ARN用于加密/解密环境变量'
 		},
 		{
 			argument: 'skip-iam',
 			optional: true,
-			description: 'Do not try to modify the IAM role for Lambda',
+			description: '不要尝试修改Lambda的IAM角色',
 			example: 'true'
 		},
 		{
 			argument: 'aws-delay',
 			optional: true,
 			example: '3000',
-			description: 'number of milliseconds betweeen retrying AWS operations if they fail',
+			description: 'AWS操作失败，等待重试的毫秒数',
 			default: '5000'
 		},
 		{
 			argument: 'aws-retries',
 			optional: true,
 			example: '15',
-			description: 'number of times to retry AWS operations if they fail',
+			description: 'AWS操作失败重试的最大次数',
 			default: '15'
 		}
 	]

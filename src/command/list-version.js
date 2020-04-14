@@ -35,33 +35,33 @@ module.exports = async function list(options) {
 }
 
 module.exports.doc = {
-	description: 'List published versions of a function',
+	description: '列出已发布的函数版本',
 	priority: 3,
 	args: [
 		{
 			argument: 'version',
 			optional: true,
-			description: 'show only the specified version or alias',
+			description: '展示指定的版本或别名',
 			example: 'production'
 		},
 		{
 			argument: 'format',
 			optional: true,
 			example: 'json',
-			description: 'result format. valid options are json and text',
+			description: '指定返回结果格式 json/text',
 			default: 'text'
 		},
 		{
 			argument: 'source',
 			optional: true,
-			description: 'Directory with project files',
+			description: '项目文件路径',
 			default: 'current directory'
 		},
 		{
 			argument: 'config',
 			optional: true,
-			description: 'Config file containing the resource names',
-			default: 'claudia.json'
+			description: '指定包含资源名称的配置文件',
+			default: 'sln.json'
 		}
 	]
 }

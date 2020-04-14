@@ -74,55 +74,55 @@ module.exports = function setVersion(options, optionalLogger) {
 }
 
 module.exports.doc = {
-	description: 'Create or update a lambda alias/api stage to point to the latest deployed version',
+	description: '创建或更新lambda、api状态，以指向最新的部署版本',
 	priority: 3,
 	args: [
 		{
 			argument: 'version',
-			description: 'the alias to update or create',
+			description: '更新或创建的别名',
 			example: 'production'
 		},
 		{
 			argument: 'source',
 			optional: true,
-			description: 'Directory with project files',
+			description: '项目文件路径',
 			default: 'current directory'
 		},
 		{
 			argument: 'config',
 			optional: true,
-			description: 'Config file containing the resource names',
-			default: 'claudia.json'
+			description: '包含资源名称的配置文件',
+			default: 'sln.json'
 		},
 		{
 			argument: 'update-env',
 			optional: true,
-			example: 'S3BUCKET=testbucket,SNSQUEUE=testqueue',
-			description: 'comma-separated list of VAR=VALUE environment variables to set, merging with old variables'
+			description: '以Key=Value的形式，设置或更新环境变量',
+			example: 'S3BUCKET=testbucket,SNSQUEUE=testqueue'
 		},
 		{
 			argument: 'set-env',
 			optional: true,
 			example: 'S3BUCKET=testbucket,SNSQUEUE=testqueue',
-			description: 'comma-separated list of VAR=VALUE environment variables to set. replaces the whole set, removing old variables.'
+			description: '以Key=Value的形式，重新设置环境变量'
 		},
 		{
 			argument: 'update-env-from-json',
 			optional: true,
 			example: 'production-env.json',
-			description: 'file path to a JSON file containing environment variables to set, merging with old variables'
+			description: '从指定的JSON文件中读取更新环境变量'
 		},
 
 		{
 			argument: 'set-env-from-json',
 			optional: true,
 			example: 'production-env.json',
-			description: 'file path to a JSON file containing environment variables to set. replaces the whole set, removing old variables.'
+			description: '从指定的JSON文件中重新设置环境变量.'
 		},
 		{
 			argument: 'env-kms-key-arn',
 			optional: true,
-			description: 'KMS Key ARN to encrypt/decrypt environment variables'
+			description: 'arn 加密解密的环境变量'
 		}
 	]
 }

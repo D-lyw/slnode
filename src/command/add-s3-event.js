@@ -1,5 +1,5 @@
 /**
- * 
+ * 添加S3服务事件触发
  */
 
 const aws = require('aws-sdk')
@@ -113,48 +113,47 @@ module.exports = function addS3EventSource(options) {
 }
 
 module.exports.doc = {
-	description: 'Add a notification event to Lambda when a file is added to a S3 bucket, and set up access permissions',
+	description: '将文件添加到S3存储桶中，向Lambda添加通知事件，设置访问权限',
 	priority: 5,
 	args: [
 		{
 			argument: 'bucket',
-			description: 'S3 Bucket name which will push notifications to Lambda'
+			description: 'S3存储桶名称，它将通知发送到Lambda'
 		},
 		{
 			argument: 'prefix',
 			optional: true,
-			description: 'Prefix filter for S3 keys that will cause the event',
+			description: '设置触发事件的S3键的前缀过滤器',
 			example: 'infiles/'
 		},
 		{
 			argument: 'suffix',
 			optional: true,
-			description: 'Suffix filter for S3 keys that will cause the event',
+			description: '设置触发事件的S3键的后缀过滤器',
 			example: '.jpg'
 		},
 		{
 			argument: 'version',
 			optional: true,
-			description: 'Bind to a particular version',
+			description: '绑定一个特定的版本',
 			example: 'production',
-			default: 'latest version'
 		},
 		{
 			argument: 'source',
 			optional: true,
-			description: 'Directory with project files',
+			description: '指定项目文件目录',
 			default: 'current directory'
 		},
 		{
 			argument: 'config',
 			optional: true,
-			description: 'Config file containing the resource names',
-			default: 'claudia.json'
+			description: '指定配置文件名称',
+			default: 'sln.json'
 		},
 		{
 			argument: 'events',
 			optional: true,
-			description: 'Comma separated list of event types that trigger the function',
+			description: '逗号分隔的触发函数的事件类型列表',
 			example: 's3:ObjectCreated:*,s3:ObjectRemoved:*',
 			default: 's3:ObjectCreated:*'
 		}
