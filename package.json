@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "基于Serverless模式的前端工具集构建",
   "main": "index.js",
+  "bin": {
+    "sln": "./bin/serverless-node.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,6 +15,7 @@
   },
   "keywords": [
     "serverless",
+    "lambda",
     "node",
     "cli"
   ],
