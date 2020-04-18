@@ -13,16 +13,15 @@ module.exports.commandHelp = function (command) {
         } else {
             res.push(indentWidth + str)
         }
-        return result
+        return res
     }
     const pushLines = function (arr) {
         arr.forEach(line => result.push(line))
     }
 
-    result.push(`Usage： sln + ${command.command} + {Options}`)
+    result.push(`\nUsage： slnode ${command.command} {Options}`)
     result.push('')
     pushLines(indent(command.doc.description, 2))
-
     result.push('')
     result.push('Options are:')
     result.push('')
@@ -55,8 +54,8 @@ module.exports.commandHelp = function (command) {
 
 module.exports.index = function (commands) {
     const result = []
-    result.push(`Usage: sln [command] {Options}\n`)
-    result.push(`A serverless toolkit for creating and deploying nodejs projects to AWS Lambda.\n`)
+    result.push(`\n  Usage: slnode [command] {Options}\n`)
+    result.push(`  一个用于创建、部署和管理AWS Lambda和API网关服务的Serverless工具集.\n`)
     result.push(`Commands are:\n`)
     
     Object.keys(commands)
@@ -81,7 +80,6 @@ module.exports.index = function (commands) {
     result.push('  --profile            设置AWS Lambda的凭证资料')
     result.push('  --proxy              设置AWS相关命令的Http代理')
     result.push('  --client-timeout     设置AWS SDK客户端网络重连等待的毫秒数，默认两分钟')
-    result.push('')
     result.push('')
     result.push('')
     result.push('Welcome to use it!\n')

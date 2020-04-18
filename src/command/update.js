@@ -25,6 +25,7 @@ const snsPublishPolicy = require('../aws/sns-publish-policy')
 const updateEnvVars = require('../util/update-env-vars')
 const zipdir = require('../util/zipdir')
 const markAlias = require('../util/mark-alias')
+const lambdaCode = require('../util/lambdaCode')
 
 
 module.exports = function update (options, optionalLoGger) {
@@ -32,7 +33,7 @@ module.exports = function update (options, optionalLoGger) {
         functionConfig, packageDir, packageArchive, s3Key,
         ownerAccount, awsPartition, workingDir, requiresHandlerUpdate = false
 
-    const logger = optionalLogger || new NullLogger()
+    const logger = optionalLoGger || new NullLogger()
     const awsDelay = options && options['aws-delay'] && parseInt(options['aws-delay'], 10) || (process.env.AWS_DELAY && parseInt(process.env.AWS_DELAY, 10))
     const awsRetries = options && options['aws-retries'] && parseInt(options['aws-retries'], 10) || 15
     const alias = (options && options.version) || 'latest'
@@ -212,7 +213,7 @@ module.exports = function update (options, optionalLoGger) {
         })
         .then(() => loadConfig(options, {lambda: {name: true, region: true}}))
         .then(config => {
-            lambdaConfig = config.lambdaVersion
+            lambdaConfig = config.lambda
             apiConfig = config.api 
             lambda = entityWrap(new aws.Lambda({region: lambdaConfig.region}), {log: logger.logApiCall, logName: 'lambda'})
             s3 = entityWrap(new aws.S3({region: lambdaConfig.region, signatureVersion: 'v4'}), {log: logger.logApiCall, logName: 's3'})
@@ -255,7 +256,7 @@ module.exports = function update (options, optionalLoGger) {
         .then(() => {
             if (!options['skip-iam']) {
                 if (getSnsDLQTopic()) {
-                    logger.logStage('patching IAM polic')
+                    logger.logStage('修补 IAM 策略')
                     const policyUpdate = {
                         RoleName: lambdaConfig.role,
                         PolicyName: 'dlq-publisher',
@@ -304,7 +305,7 @@ module.exports = function update (options, optionalLoGger) {
 }
 
 module.exports.doc = {
-	description: 'Deploy a new version of the Lambda function using project files, update any associated web APIs',
+	description: '更新部署一个新版本的Lambda函数以及相关的Web Api.',
 	priority: 2,
 	args: [
 		{

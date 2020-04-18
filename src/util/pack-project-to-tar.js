@@ -4,7 +4,7 @@ const runNpm = require('../util/run-npm')
 const readjson = require('../util/read-json')
 const fsPromise = require('fs').promises
 
-const expectedArchiveName = function (packageConfig) {
+const expectedArchiveName = function (packageConfig, extension) {
     return packageConfig.name.replace(/^@/, '').replace(/\//, '-') + '-' + packageConfig.version + (extension || '.tgz');
 }
 

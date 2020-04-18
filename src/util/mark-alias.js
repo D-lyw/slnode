@@ -2,7 +2,7 @@
 
 module.exports = function markAlias (functionName, lambda, versionName, versionAlias) {
     const config = {
-        Function: functionName,
+        FunctionName: functionName,
         FunctionVersion: versionName,
         Name: versionAlias
     }

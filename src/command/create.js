@@ -30,13 +30,13 @@ const snsPublishPolicy = require('../aws/sns-publish-policy')
 const lambadCode = require('../util/lambdaCode')
 const deployProxyApi = require('../aws/deploy-proxy-api')
 
-module.exports.create = function(options, optionalLogger) {
+module.exports = function create (options, optionalLogger) {
     let roleMetadata,
         s3Key,
         packageArchive,
         functionDesc,
         customEnvVars,
-        functionName
+        functionName,
         workingDir,
         ownerAccount,
         awsPartition,
@@ -50,7 +50,7 @@ module.exports.create = function(options, optionalLogger) {
         || 5000
     const awsRetries = options && options['aws-retries'] && parseInt(options['aws-retries'], 10) || 5
     const source = options && options.source || process.cwd()
-    const configFile = options && options.config || path.join(source, 'sln.json'),
+    const configFile = options && options.config || path.join(source, 'sln.json')
     
     const iam = entityWrap(new aws.IAM({region: options.region}), {log: logger.logApiCall, logName: 'iam'})
     const lambda = entityWrap(new aws.Lambda({region: options.region}), {log: logger.logApiCall, logName: 'lambda'})
@@ -89,38 +89,38 @@ module.exports.create = function(options, optionalLogger) {
     // 错误参数信息处理
     const validationError = function () {
         if (!options.region) {
-            return `AWS region 参数未定义，请使用 --region 定义该参数值`
+            return `AWS region 参数未定义，请使用 --region 定义该参数值\n`
         }
         if (!options.handler && !options['api-module']) {
-            return 'Lambda handler 参数未定义，请使用 --handler 定义该参数值'
+            return 'Lambda handler 参数未定义，请使用 --handler 定义该参数值\n'
         }
         if (options.handler && options['api-module']) {
-            return `不能同时使用 handler 和 api-module 两个参数`
+            return `不能同时使用 handler 和 api-module 两个参数\n`
         }
         if (!options.handler && options['deploy-proxy-api']) {
-            return `deploy-proxy-api 需要一个 handler，请使用 --handler 定义该参数值`
+            return `deploy-proxy-api 需要一个 handler，请使用 --handler 定义该参数值\n`
         }
         if (options.handler && options.handler.indexOf('.') < 0)  {
-            return `未指定 Lambda 处理函数，请使用 --handler 指定函数`
+            return `未指定 Lambda 处理函数，请使用 --handler 指定函数\n`
         }
         if (options['api-module'] && options['api-module'].indexOf('.') >= 0) {
-            return `Api module 模块名不能和已存在的文件名或函数名重名`
+            return `Api module 模块名不能和已存在的文件名或函数名重名\n`
         }
 
         if (!fsUtils.isDir(path.dirname(configFile))) {
-            return `无法将内容写入 ${configFile}`
+            return `无法将内容写入 ${configFile}\n`
         }
         if (fsUtils.fileExists(configFile)) {
             if (options && options.config) {
-                return `${options.config} + 已存在`
+                return `${options.config} + 已存在\n`
             }
             return 'sln.json 已经在项目文件夹下'
         }
         if (!fsUtils.fileExists(path.join(source, 'package.json'))) {
-            return `项目目录下不存在 package.json 文件`
+            return `项目目录下不存在 package.json 文件\n`
         }
         if (options.policies && !policyFiles().length) {
-            return `没有文件匹配 ${options.policies}`
+            return `没有文件匹配 ${options.policies}\n`
         }
         if (options.memory || options.memory === 0) {
             if (options.memory < 128) {
@@ -142,16 +142,16 @@ module.exports.create = function(options, optionalLogger) {
             }
         }
         if (options['allow-recursion'] && options.role && judgeRole.isRoleArn(options.role)) {
-            return `参数 allow-recursion 和 role 冲突`
+            return `参数 allow-recursion 和 role 冲突\n`
         }
         if (options['s3-key'] && !options['use-s3-bucket']) {
-            return `--s3-key 需要和 --use-s3-bucket 一起使用`
+            return `--s3-key 需要和 --use-s3-bucket 一起使用\n`
         }
     }
 
     // 获取package包信息
     const getPackageInfo = function () {
-        logger.logStage('Loading package config')
+        logger.logStage('加载项目package包配置')
         return readJson(path.join(source, 'package.json'))
             .then(jsonConfig => {
                 const name = options.name || jsonConfig.name
@@ -170,7 +170,7 @@ module.exports.create = function(options, optionalLogger) {
     const createLambda = function (functionName, functionDesc, functionCode, roleArn) {
         return retry(
             () => {
-                logger.logStage('creating Lambda')
+                logger.logStage('创建 Lambda 函数')
                 return lambda.createFunction({
                     Code: functionCode,
                     FunctionName: functionName,
@@ -191,14 +191,14 @@ module.exports.create = function(options, optionalLogger) {
             error => {
                 return error && error.code === 'InvalidParameterValueException'
             },
-            () => logger.logStage('waiting for IAM role propagation'),
+            () => logger.logStage('等待 IAM 角色生效'),
             Promise
         )
     }
 
     // 标记别名
     const markAliases = function (lambdaData) {
-        logger.logStage('create version alias')
+        logger.logStage('创建当前版本别名')
         return markAlias(lambdaData.FunctionName, lambda, '$LATEST', 'latest')
             .then(() => {
                 if (options.version) {
@@ -213,18 +213,18 @@ module.exports.create = function(options, optionalLogger) {
     const createWebApi = function (lambdaMetadata, packageDir) {
         let apiModule, apiConfig, apiModulePath
         const alias = options.version || 'latest'
-        logger.logStage('creating REST Api')
+        logger.logStage('创建 REST Api')
         try {
             apiModulePath = path.join(packageDir, options['api-module'])
             apiModule = require(path.resolve(apiModulePath))
             apiConfig = apiModule && apiModule.apiConfig && apiModule.apiConfig()
         } catch (e) {
             console.error(e.stack || e)
-            return Promise.reject(`无法从 ${apiModulePath} 加载api配置文件`)
+            return Promise.reject(`无法从 ${apiModulePath} 加载api配置文件\n`)
         }
 
         if (!apiConfig) {
-            return Promise.reject(`没有 apiConfig 定义在模块 ${options['api-module']}`)
+            return Promise.reject(`没有 apiConfig 定义在模块 ${options['api-module']}\n`)
         }
 
         return apiGatewayPromise.createRestApiPromise({
@@ -276,7 +276,7 @@ module.exports.create = function(options, optionalLogger) {
         if (options.role) {
             config.lambda.sharedRole = true
         }
-        logger.logStage('saving configuration')
+        logger.logStage('保存配置')
         if (lambdaMetadata.api) {
             config.api = { id: lambdaMetadata.api.id, module: lambdaMetadata.api.module}
         }
@@ -309,9 +309,9 @@ module.exports.create = function(options, optionalLogger) {
         return config
     }
 
-    // 加载用户角色
+    // 加载函数执行的角色
     const loadRole = function (functionName) {
-        logger.logStage(`initialising IAM role`)
+        logger.logStage(`初始化 IAM 角色`)
         if (options.role) {
             if (judgeRole.isRoleArn(options.role)) {
                 return Promise.resolve({
@@ -324,7 +324,7 @@ module.exports.create = function(options, optionalLogger) {
             return iam.getRole({RoleName: options.role}).promise()
         } else {
             return iam.createRole({
-                RoleName: functionName + '-executor',
+                RoleName: functionName + '-role',
                 AssumeRolePolicyDocument: lambdaExecutorPolicy()
             }).promise()
         }
@@ -369,7 +369,7 @@ module.exports.create = function(options, optionalLogger) {
         .then(dir => workingDir = dir)
         .then(() => collectFiles(source, workingDir, options, logger))
         .then(dir => {
-            logger.logStage('validating package')
+            logger.logStage('验证包')
             return validatePackage(dir, options.handler, options['api-module'])
         })
         .then(dir => {
@@ -377,7 +377,7 @@ module.exports.create = function(options, optionalLogger) {
             return cleanUpPackage(dir, options, logger)
         })
         .then(dir => {
-            logger.logStage('zipping package')
+            logger.logStage('打包项目包')
             return zipdir(dir)
         })
         .then(zipFile => {

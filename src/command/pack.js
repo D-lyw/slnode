@@ -53,7 +53,7 @@ module.exports = function pack (options, optionalLogger) {
         .then(() => collectFiles(source, workingDir, options, logger))
         .then(dir => cleanUpPackage(dir, options, logger))
         .then(dir => {
-            logger.logStage('压缩包')
+            logger.logStage('压缩项目文件')
             return zipdir(dir)
         })
         .then(zipFile => fsUtil.move(zipFile, outputFileName))

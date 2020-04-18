@@ -3,7 +3,7 @@
  */
 
 const fsUtil = require('../util/fs-utils')
-const fsPromise = require('fs').promises
+const fs = require('fs')
 const archiver = require('archiver')
 const tmppath = require('../util/tmppath')
 

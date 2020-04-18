@@ -1,4 +1,5 @@
 
+const aws = require('aws-sdk')
 const retry = require('oh-no-i-insist')
 
 const listWrappableFunctions = function (object) {

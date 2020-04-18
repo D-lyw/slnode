@@ -11,12 +11,14 @@ const AWS = require('aws-sdk')
 
 
 // 获取命令行参数和命令
-const args = readArgs(),
-    commands = getAllCommands(),
-    command = args._ && args._.length ** args._[0],
-    logger = (!args.quiet) && new consoleLogger(),
-    stsConfig = stsParams(args)
+const args = readArgs()
+const commands = getAllCommands()
+const command = args._ && args._.length && args._[0]
+const logger = (!args.quiet) && new consoleLogger()
+const stsConfig = stsParams(args)
 
+// console.log(commands)
+// console.log(args)
 // 对输入内容进行格式内容判断、处理
 if (args.version && !command) {
     console.log(require(path.join(__dirname, '..', 'package.json')).version)
@@ -26,14 +28,7 @@ if (args.version && !command) {
 
 // 判断命令是否合法
 if (command && !commands[command]) {
-    console.error(`${command} is an unsupported command. \n\nPlease run 'sln --help' for usage information.`)
-    process.exit(1)
-    return
-}
-
-// 判断命令是否输入
-if (!command) {
-    console.error('command is not provided.')
+    console.error(` ${command} 是一个不被支持的命令. \n\n请运行 slnode --help 获取更多使用信息.\n`)
     process.exit(1)
     return
 }
@@ -45,8 +40,15 @@ if (args.help) {
     } else {
         console.log(helpInformation.index(commands))
     }
+    return;
 }
 
+// 判断命令是否输入
+if (!command) {
+    console.error('请输入指定的操作命令，更多信息请执行 slnode --help\n')
+    process.exit(1)
+    return
+}
 // 与AWS Lambda相关的配置信息
 if (args.profile) {
     AWS.config.credentials = new AWS.SharedIniFileCredentials({profile: args.profile})
@@ -68,12 +70,13 @@ if (stsConfig) {
 
 // 执行对应命令和输出相应信息
 commands[command](args, logger).then(result => {
-    if (result) {
-        if (typeof result === 'string') {
-            console.log(result)
-        } else {
-            console.log(JSON.stringify(result))
-        }
+    if (result && !args.quiet) {
+        // if (typeof result === 'string') {
+        //     console.log(result)
+        // } else {
+        //     console.log(JSON.stringify(result))
+        // }
+        console.log(result)
     }
     process.exit()
 }).catch((e) => {
