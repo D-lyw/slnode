@@ -14,7 +14,7 @@ const pathSplitter = require('../util/path-splitter')
 const sequentialPromiseMap = require('sequential-promise-map')
 const allowApiInvocation = require('../aws/allow-api-invocation')
 const registerAuthorizers = require('../aws/register-authorizers')
-
+const clearApi = require('../util/clear-api')
 
 module.exports = function rebuildWebApi(functionName, functionVersion, restApiId, apiConfig, ownerAccount, awsPartition, awsRegion, optionalLogger, configCacheStageVar) {
     let authorizerIds
@@ -56,7 +56,7 @@ module.exports = function rebuildWebApi(functionName, functionVersion, restApiId
             integrationHttpMethod: 'POST',
             passthroughBehavior: 'WHEN_NO_MATCH',
             contentHandling: integrationContentHandling,
-            url: 'arn:' + awsPartition + ':apigateway:' + awsRegion + ':lambda:path/2015-03-31/functions/arn:' + awsPartition + ':lambda:' + awsRegion + ':' + ownerAccount + ':function:' + functionName + ':${stageVariables.lambdaVersion}/invocations'
+            uri: 'arn:' + awsPartition + ':apigateway:' + awsRegion + ':lambda:path/2015-03-31/functions/arn:' + awsPartition + ':lambda:' + awsRegion + ':' + ownerAccount + ':function:' + functionName + ':${stageVariables.lambdaVersion}/invocations'
         })
     }
     const corsHeaderValue = function () {
@@ -206,7 +206,7 @@ module.exports = function rebuildWebApi(functionName, functionVersion, restApiId
                 .then(parentId => apiGateway.createResourcePromise({
                     restApiId: restApiId,
                     parentId: parentId,
-                    pathpart: pathComponents.pathPart
+                    pathPart: pathComponents.pathPart
                 }))
                 .then(resource => {
                     knownIds[path] = resource.id 
@@ -276,15 +276,10 @@ module.exports = function rebuildWebApi(functionName, functionVersion, restApiId
     const rebuildApi = function () {
         return allowApiInvocation(functionName, functionVersion, restApiId, ownerAccount, awsPartition, awsRegion)
             .then(() => cacheRootId())
-            .then(() => sequentialPromiseMap(Object.keys(apiConfig.routes)))
+            .then(() => sequentialPromiseMap(Object.keys(apiConfig.routes), configurePath))
             .then(() => {
                 if (apiConfig.customResponses) {
                     return sequentialPromiseMap(Object.keys(apiConfig.customResponses), responseType => configureGatewayResponse(responseType, apiConfig.customResponses[responseType]))
-                }
-            })
-            .then(() => {
-                if (apiConfig.binaryMediaTypes) {
-                    return patchBinaryTypes(restApiId, apiGateway, apiConfig.binaryMediaTypes)
                 }
             })
     }

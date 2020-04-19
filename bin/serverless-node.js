@@ -17,8 +17,6 @@ const command = args._ && args._.length && args._[0]
 const logger = (!args.quiet) && new consoleLogger()
 const stsConfig = stsParams(args)
 
-// console.log(commands)
-// console.log(args)
 // 对输入内容进行格式内容判断、处理
 if (args.version && !command) {
     console.log(require(path.join(__dirname, '..', 'package.json')).version)
@@ -71,11 +69,6 @@ if (stsConfig) {
 // 执行对应命令和输出相应信息
 commands[command](args, logger).then(result => {
     if (result && !args.quiet) {
-        // if (typeof result === 'string') {
-        //     console.log(result)
-        // } else {
-        //     console.log(JSON.stringify(result))
-        // }
         console.log(result)
     }
     process.exit()
@@ -83,11 +76,3 @@ commands[command](args, logger).then(result => {
     console.error(e)
     process.exit(1)
 })
-
-/**
- * 未完成部分
- * 
- * 
- * AWS-SDK配置部分代码
- * 
- */

@@ -380,15 +380,6 @@ module.exports = function create (options, optionalLogger) {
                     PolicyName: 'log-writer',
                     PolicyDocument: loggingPolicy(awsPartition)
                 }).promise()
-                .then(() => {
-                    if (getSnsDLQTopic()) {
-                        return iam.putRolePolicy({
-                            RoleName: roleMetadata.Role.RoleName,
-                            PolicyName: 'dlq-publisher',
-                            PolicyDocument: snsPublishPolicy(getSnsDLQTopic())
-                        }).promise()
-                    }
-                })
             }
         })
         .then(() => {
