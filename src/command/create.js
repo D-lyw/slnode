@@ -56,20 +56,6 @@ module.exports = function create (options, optionalLogger) {
     const lambda = entityWrap(new aws.Lambda({region: options.region}), {log: logger.logApiCall, logName: 'lambda'})
     const s3 = entityWrap(new aws.S3({region: options.region, signatureVersion: 'v4'}), {log: logger.logApiCall, logName: 's3'} )
 
-    // 准备删除部分
-    // --------------------------
-    getSnsDLQTopic = function () {
-			const topicNameOrArn = options['dlq-sns'];
-			if (!topicNameOrArn) {
-				return false
-            }
-            return false
-			if (isSNSArn(topicNameOrArn)) {
-				return topicNameOrArn;
-			}
-			return `arn:${awsPartition}:sns:${options.region}:${ownerAccount}:${topicNameOrArn}`;
-		}
-    // --------------------------
     
     // 创建AWS网关api
     const apiGatewayPromise = retriableWrap(
@@ -594,17 +580,3 @@ module.exports.doc = {
 		}
 	]
 }
-
-/**
- * 未处理
- * 
- * apiGatewayPromise函数
- * 
- * rebuildWebApi 函数实现 Done
- */
-
-/**
- * 备注：
- * 
- * 1. 删除了处理参数 security-group-ids 和 allow-recursion 的相关代码
- */

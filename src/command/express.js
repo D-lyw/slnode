@@ -78,12 +78,6 @@ module.exports.doc = {
 			optional: true,
 			description: '指定将要创建的代理模块名称',
 			default: 'lambda'
-		},
-		// {
-		// 	argument: 'aws-serverless-express-module',
-		// 	optional: true,
-		// 	description: 'the NPM module name/path of the serverless-express module you want to install',
-		// 	default: 'aws-serverless-express'
-		// }
+		}
 	]
 }
