@@ -1,2 +1,7 @@
-# Graduation_Project
-基于Serverless模式的前端工具集构建
+# slnode
+
+A cli to deploy Serverless project to AWS, mainly used for front-end node.js project.
+
+## usage
+
+## commands

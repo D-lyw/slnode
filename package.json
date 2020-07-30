@@ -1,7 +1,7 @@
 {
   "name": "serverless-cli",
   "version": "1.0.0",
-  "description": "基于Serverless模式的前端工具集构建",
+  "description": "A tool for deploying Serverless project to AWS， mainly used for front-end node.js project",
   "main": "index.js",
   "bin": {
     "slnode": "./bin/serverless-node.js"
@@ -16,8 +16,9 @@
   "keywords": [
     "serverless",
     "lambda",
-    "node",
-    "cli"
+    "node.js",
+    "cli",
+    "aws"
   ],
   "author": "D-lyw",
   "license": "ISC",
