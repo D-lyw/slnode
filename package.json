@@ -28,7 +28,7 @@
   "homepage": "https://github.com/D-lyw/Graduation_Project#readme",
   "dependencies": {
     "archiver": "^3.1.1",
-    "aws-sdk": "^2.652.0",
+    "aws-sdk": "^2.814.0",
     "fs-extra": "^9.0.0",
     "glob": "^7.1.6",
     "gunzip-maybe": "^1.4.1",
